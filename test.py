@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+import csv
 
 chrome_options = webdriver.ChromeOptions()
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
@@ -33,23 +34,44 @@ for i in range(1, 2):
         urls.append(full_url)
 
 unique_urls = list(dict.fromkeys(urls))
-all_unique_posts = []
+all_posts = []
 
 for url in unique_urls:
     web_driver_instance.get(url)
     webpage_source = web_driver_instance.page_source
     soup = BeautifulSoup(webpage_source, 'html.parser')
 
+    for blockquote in soup.find_all('blockquote'):
+        blockquote.decompose()
+    for footer in soup.find_all('footer'):
+        footer.decompose()
+
     posts = soup.find_all('div', class_='post-content')
+
     # TODO: FIND ONLY POSTS THAT ARE IN words_to_check
     for post in posts:
-        all_unique_posts.append(post.text.strip())
+        all_posts.append(post.text.strip())
 
+
+output_file = 'posts.csv'
+
+# Open the file in write mode
+# Open a file in write mode
+with open('output.csv', 'w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    for item in all_posts:
+        writer.writerow([item])
+
+print('Dlugosc listy to: ' + str(len(all_posts)))
+
+# Read from the CSV file with UTF-8 encoding
 counter = 0
 
-for post in all_unique_posts:
-    counter = counter+1
-    print('----------------------------------------')
-    print(post)
+with open('output.csv', 'r', encoding='utf-8') as file:
+    reader = csv.reader(file)
+    for row in reader:
+        counter = counter + 1
+        print(row)
 
+print('Dlugosc listy to: ' + str(len(all_posts)))
 print(counter)
