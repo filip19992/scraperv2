@@ -13,7 +13,10 @@ class ModelPredictor:
         predictions = self.model.predict(new_data_tfidf)
         return predictions
 
-nowe_dane = ["Sztuczna inteligencja to przyszłość pracy.", "Obawiam się, że stracę pracę z powodu sztucznej inteligencji."]
+# 0 - pozytywny
+# 1 - negatywny
+
+nowe_dane = ["Czy sztuczna inteligencja sprawi, że stanę się zbędny"]
 
 # Wczytanie modelu i przewidywanie na nowych danych
 predictor = ModelPredictor('model_naive_bayes.joblib', trainer.vectorizer)

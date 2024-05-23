@@ -1,69 +1,99 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
-import time
-
 from selenium.webdriver.common.by import By
-
-MULTIPLAYER_FOR_LOADING_SPEED = 2000
-LOADING_SPEED = 1
-FACEBOOK_GROUP_URL = "https://www.facebook.com/groups/ProgramistaPoczatkujacy"
-
-SCROLL_SCRIPT = "window.scrollTo(0, document.body.scrollHeight);"
-cancelCookiesXPATH = "//div[contains(@aria-label, 'Odrzuć opcjonalne pliki cookie')]"
-loginQuitXPATH = "//div[contains(@aria-label, 'Zamknij')]"
+import csv
 
 
-def cancel_cookies(web_driver):
-    cookie_button = web_driver.find_element(By.XPATH, cancelCookiesXPATH)
-    cookie_button.click()
+def setup_webdriver():
+    """Setup and return a Selenium WebDriver instance with configured options."""
+    chrome_options = webdriver.ChromeOptions()
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    chrome_options.add_argument(f'user-agent={user_agent}')
+    return webdriver.Chrome(options=chrome_options)
 
 
-def quit_login_popout(webdriver):
-    login_quit = webdriver.find_element(By.XPATH, loginQuitXPATH)
-    login_quit.click()
+def collect_urls(driver, pages=1):
+    """Collect and return unique URLs from search results."""
+    base_url = "https://4programmers.net"
+    urls = []
+    for i in range(1, pages + 1):
+        driver.get(f'https://4programmers.net/Search?q=sztuczna+inteligencja&page={i}')
+        try:
+            gdpr_button = driver.find_element(By.ID, 'gdpr-none')
+            gdpr_button.click()
+        except:
+            print('There is no GDPR button')
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        ul_element = soup.find('ul', {'id': 'search-results'})
+        a_tags = ul_element.find_all('a', href=True)
+        for a_tag in a_tags:
+            link = a_tag['href']
+            full_url = link if link.startswith('http') else base_url + link
+            urls.append(full_url)
+    return list(dict.fromkeys(urls))
 
 
-def load_page(seconds, webdriver):
-    for i in range(0, seconds):
-        webdriver.execute_script(SCROLL_SCRIPT)
-        time.sleep(LOADING_SPEED)
-        print(str(i) + '/' + str(seconds))
+def scrape_content(driver, url, keywords):
+    """Scrape and return filtered content from a given URL based on specified keywords."""
+    driver.get(url)
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    for blockquote in soup.find_all('blockquote'):
+        blockquote.decompose()
+    for footer in soup.find_all('footer'):
+        footer.decompose()
+    posts = soup.find_all('div', class_='post-content')
+    filtered_posts = []
+    for post in posts:
+        post_text = post.text.strip()
+        if any(word in post_text.lower() for word in keywords):
+            filtered_posts.append(post_text)
+    return filtered_posts
 
 
-def print_comments(parsed_comments):
-    number_of_comments = 0
-    for line in parsed_comments:
-        if line.string and line.string.strip():
-            print(line.string.strip())
-            number_of_comments += 1
-    return number_of_comments
+def save_to_csv(data, filename):
+    """Save a list of data to a CSV file."""
+    with open(filename, 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        for item in data:
+            writer.writerow([item])
 
 
-web_driver_instance = webdriver.Chrome()
+def read_and_print_csv(filename):
+    """Read and print the content of a CSV file."""
+    counter = 0
+    with open(filename, 'r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            counter += 1
+            print(row)
+    return counter
 
-web_driver_instance.get(FACEBOOK_GROUP_URL)
 
-time.sleep(1)
+def main():
+    driver = setup_webdriver()
+    keywords = ['sztucz', 'inteligencj', 'zastąp', 'zastap', ' ai ', ' si ', 'artificial', 'programist', 'potrzeba', 'wyprz', 'przysz', 'warto']
 
-cancel_cookies(web_driver_instance)
+    print("Collecting URLs...")
+    urls = collect_urls(driver, pages=1)
 
-time.sleep(1)
+    print("Scraping content from URLs...")
+    all_posts = []
+    for url in urls:
+        all_posts.extend(scrape_content(driver, url, keywords))
 
-quit_login_popout(web_driver_instance)
+    driver.quit()
 
-time.sleep(1)
+    print(f'Dlugosc listy to: {len(all_posts)}')
 
-load_page(MULTIPLAYER_FOR_LOADING_SPEED, web_driver_instance)
+    output_file = 'output.csv'
+    save_to_csv(all_posts, output_file)
 
-webpage_source = web_driver_instance.page_source
+    print("Reading and printing CSV content...")
+    counter = read_and_print_csv(output_file)
 
-web_driver_instance.close()
+    print(f'Total number of posts: {len(all_posts)}')
+    print(f'Total number of rows in CSV: {counter}')
 
-parsed_html = BeautifulSoup(webpage_source, 'html.parser')
 
-all_custom_details = parsed_html.find_all('div', {
-    'class': 'xdj266r x11i5rnm xat24cr x1mh8g0r x1vvkbs'})
-
-number_of_comments = print_comments(all_custom_details)
-
-print(number_of_comments)
+if __name__ == "__main__":
+    main()
