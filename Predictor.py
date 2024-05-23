@@ -1,6 +1,6 @@
 from joblib import load
 
-from ML import trainer
+from Trainer import trainer
 
 
 class ModelPredictor:
