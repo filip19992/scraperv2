@@ -46,7 +46,7 @@ def scrape_content(driver, url, keywords):
     for post in posts:
         post_text = post.text.strip()
         if any(word in post_text.lower() for word in keywords):
-            filtered_posts.append(post_text)
+            filtered_posts.append(post_text + ';')
     return filtered_posts
 
 
@@ -82,8 +82,6 @@ def main():
         all_posts.extend(scrape_content(driver, url, keywords))
 
     driver.quit()
-
-    print(f'Dlugosc listy to: {len(all_posts)}')
 
     output_file = 'output.csv'
     save_to_csv(all_posts, output_file)

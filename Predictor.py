@@ -15,6 +15,7 @@ class ModelPredictor:
 
 # 0 - pozytywny
 # 1 - negatywny
+# 2 - neutralny
 
 nowe_dane = ["Czy sztuczna inteligencja sprawi, że stanę się zbędny"]
 
