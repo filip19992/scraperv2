@@ -1,3 +1,4 @@
+import numpy as np
 from joblib import load
 
 from Trainer import trainer
@@ -26,12 +27,18 @@ class ModelPredictor:
 # 1 - negatywny
 # 2 - neutralny
 
-
 # Wczytanie modelu i przewidywanie na nowych danych
 predictor = ModelPredictor('model_naive_bayes.joblib', trainer.vectorizer)
 nowe_dane = predictor.read_csv('output.csv')
-print(nowe_dane)
 predykcje = predictor.predict(nowe_dane)
 
-# Wyświetlenie predykcji
-print("Predykcje:", predykcje)
+label_mapping = {0: "pozytywny", 1: "negatywny", 2: "neutralny"}
+
+# Map predicted labels to descriptive categories
+predykcje_descriptive = [label_mapping[label] for label in predykcje]
+
+# Class Distribution
+unique, counts = np.unique(predykcje_descriptive, return_counts=True)
+class_distribution = dict(zip(unique, counts))
+print("Class Distribution:")
+print(class_distribution)
