@@ -27,7 +27,7 @@ X = data["Opinia"]
 y = data["Etykieta"]
 
 # Podział danych na zbiór treningowy i testowy
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 # Inicjalizacja klasy ModelTrainer
 trainer = ModelTrainer()
@@ -43,4 +43,4 @@ y_pred = trainer.model.predict(trainer.vectorizer.transform(X_test))
 
 # Ocena modelu
 print("Dokładność:", accuracy_score(y_test, y_pred))
-print("Raport klasyfikacji:\n", classification_report(y_test, y_pred))
+print("Raport klasyfikacji:\n", classification_report(y_test, y_pred, zero_division=1))
