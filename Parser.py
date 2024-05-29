@@ -42,12 +42,25 @@ def scrape_content(driver, url, keywords):
     for footer in soup.find_all('footer'):
         footer.decompose()
     posts = soup.find_all('div', class_='post-content')
-    filtered_posts = set()  # Use a set to store unique posts
+    filtered_posts = []  # Use a set to store unique posts
     for post in posts:
         post_text = post.text.strip()
         if any(word in post_text.lower() for word in keywords):
-            filtered_posts.add(post_text + ';')  # Add the post to the set
-    return list(filtered_posts)  # Convert the set back to a list for returning
+            filtered_posts.append(post_text + ';')  # Add the post to the set
+    return filtered_posts  # Convert the set back to a list for returning
+
+
+def remove_duplicates(input_list):
+    # Use a set to track seen elements
+    seen = set()
+    unique_list = []
+
+    for item in input_list:
+        if item not in seen:
+            unique_list.append(item)
+            seen.add(item)
+
+    return unique_list
 
 
 def save_to_csv(data, filename):
@@ -81,10 +94,11 @@ def main():
     for url in urls:
         all_posts.extend(scrape_content(driver, url, keywords))
 
+    posts_without_duplicates = remove_duplicates(all_posts)
     driver.quit()
 
     output_file = 'output.csv'
-    save_to_csv(all_posts, output_file)
+    save_to_csv(posts_without_duplicates, output_file)
 
     print("Reading and printing CSV content...")
     counter = read_and_print_csv(output_file)
