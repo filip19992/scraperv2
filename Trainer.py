@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -36,6 +38,13 @@ trainer = ModelTrainer()
 trainer.train_model(X_train, y_train)
 
 # Zapisanie modelu
+if os.path.exists('model_naive_bayes.joblib'):
+    # Remove the file
+    os.remove('model_naive_bayes.joblib')
+    print(f"File '{'model_naive_bayes.joblib'}' has been successfully removed.")
+else:
+    print(f"File '{'model_naive_bayes.joblib'}' does not exist.")
+
 trainer.save_model('model_naive_bayes.joblib')
 
 # Przewidywanie etykiet dla zbioru testowego

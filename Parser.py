@@ -68,7 +68,7 @@ def save_to_csv(data, filename):
     with open(filename, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         for item in data:
-            writer.writerow([item])
+            writer.writerow([item.replace('\n', ' ')])
 
 
 def read_and_print_csv(filename):
@@ -87,7 +87,7 @@ def main():
     keywords = ['sztucz', 'inteligencj', 'zastąp', 'zastap', ' ai ', ' si ', 'artificial', 'programist', 'potrzeba', 'wyprz', 'przysz', 'warto']
 
     print("Collecting URLs...")
-    urls = collect_urls(driver, pages=2)
+    urls = collect_urls(driver, pages=1)
 
     print("Scraping content from URLs...")
     all_posts = []
