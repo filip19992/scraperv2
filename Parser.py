@@ -34,7 +34,7 @@ def collect_urls(driver, pages=1):
 
 
 def scrape_content(driver, url, keywords):
-    """Scrape and return filtered content from a given URL based on specified keywords."""
+    """Scrape and return filtered content from a given URL based on specified keywords, removing duplicates."""
     driver.get(url)
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     for blockquote in soup.find_all('blockquote'):
@@ -42,12 +42,12 @@ def scrape_content(driver, url, keywords):
     for footer in soup.find_all('footer'):
         footer.decompose()
     posts = soup.find_all('div', class_='post-content')
-    filtered_posts = []
+    filtered_posts = set()  # Use a set to store unique posts
     for post in posts:
         post_text = post.text.strip()
         if any(word in post_text.lower() for word in keywords):
-            filtered_posts.append(post_text + ';')
-    return filtered_posts
+            filtered_posts.add(post_text + ';')  # Add the post to the set
+    return list(filtered_posts)  # Convert the set back to a list for returning
 
 
 def save_to_csv(data, filename):
@@ -74,7 +74,7 @@ def main():
     keywords = ['sztucz', 'inteligencj', 'zastąp', 'zastap', ' ai ', ' si ', 'artificial', 'programist', 'potrzeba', 'wyprz', 'przysz', 'warto']
 
     print("Collecting URLs...")
-    urls = collect_urls(driver, pages=1)
+    urls = collect_urls(driver, pages=2)
 
     print("Scraping content from URLs...")
     all_posts = []
