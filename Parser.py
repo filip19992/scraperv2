@@ -5,7 +5,6 @@ import csv
 
 
 def setup_webdriver():
-    """Setup and return a Selenium WebDriver instance with configured options."""
     chrome_options = webdriver.ChromeOptions()
     user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
     chrome_options.add_argument(f'user-agent={user_agent}')
@@ -13,28 +12,30 @@ def setup_webdriver():
 
 
 def collect_urls(driver, pages=1):
-    """Collect and return unique URLs from search results."""
     base_url = "https://4programmers.net"
     urls = []
-    for i in range(1, pages + 1):
-        driver.get(f'https://4programmers.net/Search?q=sztuczna+inteligencja&page={i}')
-        try:
-            gdpr_button = driver.find_element(By.ID, 'gdpr-none')
-            gdpr_button.click()
-        except:
-            print('There is no GDPR button')
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        ul_element = soup.find('ul', {'id': 'search-results'})
-        a_tags = ul_element.find_all('a', href=True)
-        for a_tag in a_tags:
-            link = a_tag['href']
-            full_url = link if link.startswith('http') else base_url + link
-            urls.append(full_url)
+    urls_to_search = ['https://4programmers.net/Search?q=sztuczna+inteligencja&page=',
+                      'https://4programmers.net/Search?q=AI&page=',
+                      'https://4programmers.net/Search?q=artificial+intelligence&page=']
+    for url in urls_to_search:
+        for i in range(1, pages + 1):
+            driver.get(f'{url}{i}')
+            try:
+                gdpr_button = driver.find_element(By.ID, 'gdpr-none')
+                gdpr_button.click()
+            except:
+                print('There is no GDPR button')
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            ul_element = soup.find('ul', {'id': 'search-results'})
+            a_tags = ul_element.find_all('a', href=True)
+            for a_tag in a_tags:
+                link = a_tag['href']
+                full_url = link if link.startswith('http') else base_url + link
+                urls.append(full_url)
     return list(dict.fromkeys(urls))
 
 
 def scrape_content(driver, url, keywords):
-    """Scrape and return filtered content from a given URL based on specified keywords, removing duplicates."""
     driver.get(url)
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     for blockquote in soup.find_all('blockquote'):
@@ -42,12 +43,12 @@ def scrape_content(driver, url, keywords):
     for footer in soup.find_all('footer'):
         footer.decompose()
     posts = soup.find_all('div', class_='post-content')
-    filtered_posts = []  # Use a set to store unique posts
+    filtered_posts = []
     for post in posts:
         post_text = post.text.strip()
         if any(word in post_text.lower() for word in keywords):
-            filtered_posts.append(post_text + ';')  # Add the post to the set
-    return filtered_posts  # Convert the set back to a list for returning
+            filtered_posts.append(post_text + ';')
+    return filtered_posts
 
 
 def remove_duplicates(input_list):
@@ -84,10 +85,12 @@ def read_and_print_csv(filename):
 
 def main():
     driver = setup_webdriver()
-    keywords = ['sztucz', 'inteligencj', 'zastąp', 'zastap', ' ai ', ' si ', 'artificial', 'programist', 'potrzeba', 'wyprz', 'przysz', 'warto']
+    keywords = ['sztucz', 'inteligencj', 'zastąp', 'zastap', ' ai ', ' si ',
+                'artificial', 'programist', 'potrzeba', 'wyprz', 'przysz', 'warto', ' agi ',
+                ' si ', 'uczyć', 'uczyc', ]
 
     print("Collecting URLs...")
-    urls = collect_urls(driver, pages=1)
+    urls = collect_urls(driver, pages=2)
 
     print("Scraping content from URLs...")
     all_posts = []
