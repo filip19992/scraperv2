@@ -2,7 +2,6 @@ import numpy as np
 from joblib import load
 
 from Trainer import trainer
-import csv
 
 
 class ModelPredictor:
@@ -19,16 +18,16 @@ class ModelPredictor:
         with open(filename, 'r', encoding='utf-8') as file:
             lines = file.readlines()
 
-        # Usunięcie znaków nowej linii z każdej linii i utworzenie listy zdań
         sentences = [line.strip() for line in lines]
-        return  sentences
+        return sentences
 
 # 0 - pozytywny
 # 1 - negatywny
 # 2 - neutralny
 
+
 predictor = ModelPredictor('model_naive_bayes.joblib', trainer.vectorizer)
-nowe_dane = predictor.read_csv('output.csv')
+nowe_dane = predictor.read_csv('output-4.csv')
 predykcje = predictor.predict(nowe_dane)
 
 label_mapping = {0: "pozytywny", 1: "negatywny", 2: "neutralny"}

@@ -7,6 +7,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, classification_report
 from joblib import dump
 
+
 class ModelTrainer:
     def __init__(self):
         self.model = None
@@ -20,6 +21,7 @@ class ModelTrainer:
     def save_model(self, model_path):
         dump(self.model, model_path)
         print("Model został pomyślnie zapisany.")
+
 
 data = pd.read_csv("opinie.csv", sep=';')
 

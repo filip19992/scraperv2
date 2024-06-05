@@ -16,7 +16,10 @@ def collect_urls(driver, pages=1):
     urls = []
     urls_to_search = ['https://4programmers.net/Search?q=sztuczna+inteligencja&page=',
                       'https://4programmers.net/Search?q=AI&page=',
-                      'https://4programmers.net/Search?q=artificial+intelligence&page=']
+                      'https://4programmers.net/Search?q=artificial+intelligence&page=',
+                      'https://4programmers.net/Search?q=devin&page=',
+                      'https://4programmers.net/Search?q=chat+gpt&page=',
+                      'https://4programmers.net/Search?q=copilot&page=']
     for url in urls_to_search:
         for i in range(1, pages + 1):
             driver.get(f'{url}{i}')
@@ -36,18 +39,22 @@ def collect_urls(driver, pages=1):
 
 
 def scrape_content(driver, url, keywords):
-    driver.get(url)
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    for blockquote in soup.find_all('blockquote'):
-        blockquote.decompose()
-    for footer in soup.find_all('footer'):
-        footer.decompose()
-    posts = soup.find_all('div', class_='post-content')
     filtered_posts = []
-    for post in posts:
-        post_text = post.text.strip()
-        if any(word in post_text.lower() for word in keywords):
-            filtered_posts.append(post_text + ';')
+    try:
+        driver.get(url)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        for blockquote in soup.find_all('blockquote'):
+            blockquote.decompose()
+        for footer in soup.find_all('footer'):
+            footer.decompose()
+        posts = soup.find_all('div', class_='post-content')
+        for post in posts:
+            post_text = post.text.strip()
+            if any(word in post_text.lower() for word in keywords):
+                filtered_posts.append(post_text + ';')
+    except:
+        print('Unable to scrap this page')
+
     return filtered_posts
 
 
@@ -84,13 +91,18 @@ def read_and_print_csv(filename):
 
 
 def main():
+    output_file = 'output-4.csv'
+
     driver = setup_webdriver()
-    keywords = ['sztucz', 'inteligencj', 'zastąp', 'zastap', ' ai ', ' si ',
-                'artificial', 'programist', 'potrzeba', 'wyprz', 'przysz', 'warto', ' agi ',
-                ' si ', 'uczyć', 'uczyc', ]
+    keywords = ['zastąp', 'zastap', 'zastąpić', 'zastapic', 'sztuczna inteligencja nie potrafi', 'ai nie potrafi',
+                'programiści są bezpieczni', 'wyprze', 'wyparci', 'sa bezpieczni', 'ai zastapi', 'ai nie zastapi',
+                'zastapi', 'nie sa bezpieczni', 'narazie sztuczna inteligencja', 'narazie ai',
+                'sztuczna inteligencja jest dobra', 'sztuczna inteligencja jest beznadziejna', 'sztuczna inteligencja jest slaba',
+                'sztuczna inteligencja jest przereklamowana', 'sztuczna inteligencja nie umie', 'sztuczna inteligencja nie rozumie',
+                'sztuczna inteligencja jest dobra w']
 
     print("Collecting URLs...")
-    urls = collect_urls(driver, pages=2)
+    urls = collect_urls(driver, pages=150)
 
     print("Scraping content from URLs...")
     all_posts = []
@@ -100,7 +112,6 @@ def main():
     posts_without_duplicates = remove_duplicates(all_posts)
     driver.quit()
 
-    output_file = 'output.csv'
     save_to_csv(posts_without_duplicates, output_file)
 
     print("Reading and printing CSV content...")
